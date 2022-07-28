@@ -58,7 +58,13 @@ class UserController extends Controller
         } catch (JWTException $e) {
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        return response()->json(compact('token'));
+        
+        return response()->json([
+            'status'        => 1,
+            'message'       => 'login success',
+            'access_token'  => $token,
+            'token_type'    => 'Bearer',
+        ]);
     }
 
     /**
