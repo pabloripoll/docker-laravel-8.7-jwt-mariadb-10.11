@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use JWTAuth;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Log;
+
 
 class UserController extends Controller
 {
@@ -102,8 +103,8 @@ class UserController extends Controller
      */
     public function logout()
     {
-        auth()->logout();
-
+        JWTAuth::invalidate(JWTAuth::getToken());
+        
         return response()->json(['message' => 'successfully logged out']);
     }
 }
