@@ -64,6 +64,7 @@ class UserController extends Controller
             'message'       => 'login success',
             'access_token'  => $token,
             'token_type'    => 'Bearer',
+            'expires_in'    => auth()->factory()->getTTL() * 60
         ]);
     }
 
@@ -90,6 +91,7 @@ class UserController extends Controller
             return response()->json(['token_absent'], $e->getStatusCode());
 
         }
+        
         return response()->json(compact('user'));
     }
     
