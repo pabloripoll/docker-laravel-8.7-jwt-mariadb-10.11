@@ -43,7 +43,7 @@ Route::get('/v1/categories-tree', [CategoryController::class, 'indextree']);
 Route::get('/v1/products', [ProductController::class, 'index']);
 Route::get('/v1/products/{id}', [ProductController::class, 'index']);
 
-Route::group(['middleware' => ['jwt.verify']], function() {
+Route::group(['middleware' => ['jwt.auth']], function() {
     // User
     Route::get('/v1/user', [UserController::class, 'getAuthenticatedUser']);
     Route::get('/v1/logout', [UserController::class, 'logout']);
