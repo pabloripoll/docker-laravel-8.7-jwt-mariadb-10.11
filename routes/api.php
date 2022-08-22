@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\CategoryController;
 //use App\Http\Controllers\Api\ProductController;
 /*
 |--------------------------------------------------------------------------
-| API Routes http://apistorelamp74laravel8jwt.localhost/api/v1
+| API Endpoint http://apistorelamp74laravel8jwt.localhost/api/v1
 |--------------------------------------------------------------------------
 |
 | Here is where you can register API routes for your application. These
@@ -19,20 +19,9 @@ use App\Http\Controllers\Api\CategoryController;
 |
 */
 
-/* Route::group([
-    'middleware' => 'api',
-    'prefix' => 'auth'
-], function ($router) {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('me', [AuthController::class, 'me']);
-    Route::post('register', [AuthController::class, 'register']);
-}); */
-
 // User
 Route::post('/v1/sign-up', [UserController::class, 'register']);
-Route::post('/v1/login', [UserController::class, 'authenticate']);
+Route::post('/v1/sign-in', [UserController::class, 'authenticate']);
 
 // Products
 Route::get('/v1/brands', [BrandController::class, 'index']);
@@ -40,12 +29,12 @@ Route::get('/v1/brands', [BrandController::class, 'index']);
 Route::get('/v1/categories', [CategoryController::class, 'index']);
 Route::get('/v1/categories-tree', [CategoryController::class, 'indextree']);
 
-Route::get('/v1/products', [ProductController::class, 'index']);
-Route::get('/v1/products/{id}', [ProductController::class, 'index']);
+/* Route::get('/v1/products', [ProductController::class, 'index']);
+Route::get('/v1/products/{id}', [ProductController::class, 'index']); */
 
 Route::group(['middleware' => ['jwt.auth']], function() {
     // User
-    Route::get('/v1/user', [UserController::class, 'getAuthenticatedUser']);
+    Route::get('/v1/user/{id}', [UserController::class, 'getAuthenticatedUser']);
     Route::get('/v1/logout', [UserController::class, 'logout']);
 
     // Products
@@ -59,7 +48,7 @@ Route::group(['middleware' => ['jwt.auth']], function() {
     Route::put('/v1/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/v1/categories/{id}', [CategoryController::class, 'delete']);
 
-    Route::post('/v1/products', [ProductController::class, 'create']);
+    /* Route::post('/v1/products', [ProductController::class, 'create']);
     Route::put('/v1/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/v1/products/{id}', [ProductController::class, 'delete']);
+    Route::delete('/v1/products/{id}', [ProductController::class, 'delete']); */
 });
