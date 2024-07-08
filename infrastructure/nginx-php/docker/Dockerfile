@@ -1,6 +1,6 @@
+# ALPINE - PHP
 ARG ALPINE_VERSION=3.20
 ARG PHP_VERSION=8.0
-ARG PHP_ALPINE=80
 
 FROM alpine:${ALPINE_VERSION}
 FROM php:${PHP_VERSION}-fpm-alpine
@@ -22,6 +22,8 @@ RUN mkdir -p /var/www/htdocs
 WORKDIR /var/www/htdocs
 
 # Install main packages and remove default server definition
+ENV PHP_V="php8"
+
 RUN apk add --no-cache \
   curl \
   wget \
@@ -45,8 +47,6 @@ RUN set -xe \
         openssh-client
 
 # Install PHP and its extensions packages and remove default server definition
-ENV PHP_V="php83"
-
 RUN apk add --no-cache \
   ${PHP_V} \
   ${PHP_V}-cli \

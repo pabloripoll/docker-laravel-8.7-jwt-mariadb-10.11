@@ -6,30 +6,27 @@
 
 # Docker Laravel 8 + JWT with PHP FPM 8.0
 
-The objective of this repository is having a CaaS [Containers as a Service](https://www.ibm.com/topics/containers-as-a-service) to provide a start up application with the basic enviroment features to deploy a php service running with Nginx and PHP-FPM in a container for [Laravel](https://laravel.com/) and another container with a MySQL database to follow the best practices on an easy scenario to understand and modify on development requirements.
+The objective of this repository is having a CAAS [Containers As A Service](https://www.ibm.com/topics/containers-as-a-service) to provide a local development stage application with Nginx and PHP-FPM as Backend Service and a SQL Database Service following the best practices on an easy scenario to understand and modify in an Hexagonal Architecture.
 
-The connection between container is as [Host Network](https://docs.docker.com/network/drivers/host/) on `eth0`, thus both containers do not share networking or bridge configuration.
+## Backend Docker Container Service
 
-As client end user both services can be accessed through `localhost:${PORT}` but the connection between containers is through the `${HOSTNAME}:${PORT}`.
+- [Laravel 8.83.27](https://laravel.com/docs/8.x/releases)
 
-### Laravel Docker Container Service
+- [PHP-FPM 8.0.30](https://www.php.net/releases/8.0/en.php)
 
-- [Laravel 8](https://laravel.com/docs/8.x/releases)
-
-- [PHP-FPM 8.0](https://www.php.net/releases/8.0/en.php)
-
-- [Nginx 1.24](https://nginx.org/)
+- [Nginx 1.26](https://nginx.org/)
 
 - [Alpine Linux 3.20](https://www.alpinelinux.org/)
 
-### Database Service
+## Database Docker Container Service
 
-This project does not include a database service for it is intended to connect to a database instance like in a cloud database environment or similar.
+This repository has been updated including a database container service to test the backend application to simulate an database instance in development stage.
 
-To emulate a SQL database service it can be used the following [MariaDB 10.11](https://mariadb.com/kb/en/changes-improvements-in-mariadb-1011/) repository:
-- [https://github.com/pabloripoll/docker-mariadb-10.11](https://github.com/pabloripoll/docker-mariadb-10.11)
+- [Alpine Linux 3.20](https://www.alpinelinux.org/)
 
-### Project objetives with Docker
+- [MariaDB 10.11.6-r0](https://mariadb.com/kb/en/changes-improvements-in-mariadb-1011/)
+
+## Project objetives with Docker
 
 * Built on the lightweight and secure Alpine 3.20 [2024 release](https://www.alpinelinux.org/posts/Alpine-3.20.0-released.html) Linux distribution
 * Multi-platform, supporting AMD4, ARMv6, ARMv7, ARM64
@@ -42,25 +39,27 @@ To emulate a SQL database service it can be used the following [MariaDB 10.11](h
 * Follows the KISS principle (Keep It Simple, Stupid) to make it easy to understand and adjust the image to your needs
 * Services independency to connect the application to other database allocation
 
+The connection between container is as [Host Network](https://docs.docker.com/network/drivers/host/) on `eth0`, thus both containers do not share networking or bridge configuration.
+
+As a client end user, both services can be accessed through `localhost:${PORT}` but to connect between them is through the `${HOSTNAME}:${PORT}` making configuration closest to a real scenario on production.
+
 #### PHP config
 
-To use a different PHP 8 version the following [Dockerfile](docker/nginx-php/docker/Dockerfile) arguments and variable has to be modified:
+To use a different PHP version from which has been set modify the following [Dockerfile](infrastructure/nginx-php/docker/Dockerfile) arguments and variable:
 ```Dockerfile
 ARG PHP_VERSION=8.0
-ARG PHP_ALPINE=80
-...
-ENV PHP_V="php80"
+ENV PHP_V="php8"
 ```
 
-Also, it has to be informed to [Supervisor Config](docker/nginx-php/docker/config/supervisord.conf) the PHP-FPM version to run.
+Also, it has to be informed the [Supervisor Config](infrastructure/nginx-php/docker/config/supervisord.conf) the PHP-FPM version to run.
 ```bash
 ...
 [program:php-fpm]
-command=php-fpm80 -F
+command=php-fpm8 -F
 ...
 ```
 
-## Dockerfile insight
+## Dockerfile overview
 ```
 # Install main packages and remove default server definition
 RUN apk add --no-cache \
@@ -87,7 +86,7 @@ RUN set -xe \
         openssh-client
 
 # Install PHP and its extensions packages and remove default server definition
-ENV PHP_V="php80"
+ENV PHP_V="php8"
 
 RUN apk add --no-cache \
   ${PHP_V} \
@@ -134,7 +133,7 @@ RUN apk add \
 
 ## Directories Structure
 
-Directories and main files on a tree architecture description. Main `/docker` directory has `/nginx-php` directory separated in case of needing to be included other container service directory with its specific contents
+Directories and main files on a tree architecture description. Main `/infrastructure` directory has `/nginx-php` directory separated in case of needing to be included other container service directory with its specific contents
 ```
 .
 │
@@ -152,6 +151,12 @@ Directories and main files on a tree architecture description. Main `/docker` di
 │   │   └── Makefile
 │   │
 │   └── mariadb
+│       ├── docker
+│       │   ├── config
+│       │   ├── .env
+│       │   ├── docker-compose.yml
+│       │   └── Dockerfile
+│       └── Makefile
 │
 ├── resources
 │   │
@@ -175,10 +180,6 @@ Directories and main files on a tree architecture description. Main `/docker` di
 
 Makefiles are often used to automate the process of building and compiling software on Unix-based systems as Linux and macOS.
 
-*On Windows - I recommend to use Makefile: \
-https://stackoverflow.com/questions/2532234/how-to-run-a-makefile-in-windows*
-
-Makefile recipies
 ```bash
 $ make help
 usage: make [target]
@@ -203,9 +204,13 @@ Makefile  repo-flush              clears local git repository cache specially fo
 Makefile  repo-commit             echoes common git commands
 ```
 
+*On Windows* - I recommend to use Makefile: *https://stackoverflow.com/questions/2532234/how-to-run-a-makefile-in-windows*
+
 ## Service Configuration
 
 Create a [DOTENV](.env) file from [.env.example](.env.example) and setup according to your project requirement the following variables
+
+## General Information Variables
 ```
 # REMOVE COMMENTS WHEN COPY THIS FILE
 
@@ -213,38 +218,64 @@ Create a [DOTENV](.env) file from [.env.example](.env.example) and setup accordi
 DOCKER_USER=sudo
 
 # Container data for docker-compose.yml
-PROJECT_TITLE="LARAVEL"         # <- this name will be prompt for Makefile recipes
-PROJECT_ABBR="lara-nginx-php"   # <- part of the service image tag - useful if similar services are running
-
-# Laravel container
-PROJECT_HOST="127.0.0.1"                    # <- for this project is not necessary
-PROJECT_PORT="8888"                         # <- port access container service on local machine
-PROJECT_CAAS="laravel-app"                  # <- container as a service name to build service
-PROJECT_PATH="../../../laravel"             # <- path where application is binded from container to local
-
-# Database service container
-DB_CAAS="mariadb"                           # <- name of the database docker container service to access by ssh
-DB_NAME="mariadb"                           # <- name of the database to copy or replace
-DB_ROOT="7c4a8d09ca3762af61e59520943d"      # <- database root password
-DB_BACKUP_NAME="laravel"                    # <- the name of the database backup or copy file
-DB_BACKUP_PATH="resources/database"         # <- path where database backup or copy resides
+PROJECT_NAME="PR PROJECT"                       # <- this name will be prompt for automation commands
+PROJECT_ABBR="pr-proj"                          # <- part of the service image tag - useful if similar services are running
+PROJECT_HOST="127.0.0.1"                        # <- for this project is not necessary
 ```
 
-*(Database service container is explained [below](https://github.com/pabloripoll/docker-symfony-6-php-fpm-8?tab=readme-ov-file#custom-database-service-usage))*
-
-Exacute the following command to create the [docker/.env](docker/.env) file, required for building the container
-```bash
-$ make laravel-set
-LARAVEL docker-compose.yml .env file has been set.
+## Backend Service Variables
+```
+BACKEND_IMGK="-nxphp"                           # <- container image key to manage docker image created
+BACKEND_PORT="8892"                             # <- local machine port opened for container service
+BACKEND_CAAS="pr-restful"                       # <- container name to build the service
+BACKEND_BIND="../../../application"             # <- path where application is binded from container to local
 ```
 
-Checkout port availability from the set enviroment
+## Database Service Variables
+```
+DATABASE_IMGK="-amadb"                          # <- container image key to manage docker image created
+DATABASE_PORT="8893"                            # <- local machine port opened for container service
+DATABASE_CAAS="pr-mariadb"                      # <- container name to build the service
+DATABASE_ROOT="eYVX7EwVmmxKPCD"                 # <- mariadb root password
+DATABASE_NAME="mysqldb"                         # <- mariadb database name
+DATABASE_USER="mysqluser"                       # <- mariadb database user
+DATABASE_PASS="123456"                          # <- mariadb database password
+DATABASE_PATH="../../../resources/database/"    # <- sql file's directory
+DATABASE_INIT="mysql-init.sql"                  # <- init sql file
+DATABASE_BACK="mysql-backup.sql"                # <- backup sql file
+```
+
+Set containers port and there is a Makefile recipe to checkout those ports availability in your local machine
 ```bash
 $ make host-check
-
-Checking configuration for LARAVEL container:
-LARAVEL > port:8888 is free to use.
 ```
+
+Then exacute the following command to create the [infrastructure/nginx-php/docker/.env](infrastructure/nginx-php/docker/.env) and [infrastructure/mariadb/docker/.env](infrastructure/mariadb/docker/.env) files, required for building the containers
+```bash
+$ make project-set
+```
+
+## Create the Services Containers
+
+```bash
+$ make project-create
+```
+
+## Backend Service
+
+If the container is built with the pre-installed application content, by browsing to localhost with the selected port configured [http://localhost:8892/](http://localhost:8892/) will display the successfully installation welcome page.
+
+The pre-installed application could require to update its dependencies. The following Makefile recipe will update dependencies set on `composer.json` file
+```bash
+$ make backend-update
+```
+
+If it is needed to build the container with other type of application configuration from base, there is a Makefile recipe to set at [docker/Makefile](docker/Makefile) all the commands needed for its installation.
+```bash
+$ make project-install
+```
+
+### Connection between Backend with Database Service
 
 Checkout local machine IP to set connection between container services using the following makefile recipe if required
 ```bash
@@ -253,24 +284,39 @@ $ make hostname
 192.168.1.41
 ```
 
-## Create the application container service
-
-```bash
-$ make laravel-create
+Then, in the application database configuration file, it has to be filled as the following selected port example:
+```
+192.168.1.41:8893
 ```
 
-## Project Service
+#### Recipe command on Windows systems
 
-If the container is built with the pre-installed application content, by browsing to localhost with the selected port configured [http://localhost:8888/](http://localhost:8888/) will display the successfully installation welcome page.
+This project has not been tested on Windows OS neither I can use it to test it. So, I cannot bring much support on it.
 
-The pre-installed application could require to update its dependencies. The following Makefile recipe will update dependencies set on `composer.json` file
+Anyway, using this repository you will needed to find out your PC IP by login as an `administrator user` to set connection between containers.
+
 ```bash
-$ make laravel-update
+C:\WINDOWS\system32>ipconfig /all
+
+Windows IP Configuration
+
+ Host Name . . . . . . . . . . . . : 191.128.1.41
+ Primary Dns Suffix. . . . . . . . : paul.ad.cmu.edu
+ Node Type . . . . . . . . . . . . : Peer-Peer
+ IP Routing Enabled. . . . . . . . : No
+ WINS Proxy Enabled. . . . . . . . : No
+ DNS Suffix Search List. . . . . . : scs.ad.cs.cmu.edu
 ```
 
-If it is needed to build the container with other type of application configuration from base, there is a Makefile recipe to set at [docker/Makefile](docker/Makefile) all the commands needed for its installation.
+Take the first ip listed. Wordpress container will connect with database container using that IP.
+
+#### Recipe command on Unix based systems
+
+Find out your IP on UNIX systems and take the first IP listed
 ```bash
-$ make laravel-install
+$ hostname -I
+
+191.128.1.41 172.17.0.1 172.20.0.1 172.21.0.1
 ```
 
 ## Container Information
@@ -278,111 +324,38 @@ $ make laravel-install
 Docker image size
 ```bash
 $ sudo docker images
-REPOSITORY   TAG           IMAGE ID       CREATED         SIZE
-laravel-app  lara...       373f6967199b   5 minutes ago   251MB
 ```
 
 Stats regarding the amount of disk space used by the container
 ```bash
 $ sudo docker system df
-TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
-Images          1         1         251.4MB   0B (0%)
-Containers      1         1         4B        0B (0%)
-Local Volumes   1         0         117.9MB   117.9MB (100%)
-Build Cache     39        0         10.56kB   10.56kB
 ```
 
-## Stopping the Container Service
+## Stopping the Services
 
 Using the following Makefile recipe stops application from running, keeping database persistance and application files binded without any loss
 ```bash
-$ make laravel-stop
-[+] Stopping 1/1
- ✔ Container laravel-app  Stopped                                                    0.5s
+$ make project-stop
 ```
 
-## Removing the Container Image
+## Removing the Images
 
 To remove application container from Docker network use the following Makefile recipe *(Docker prune commands still needed to be applied manually)*
 ```bash
-$ make laravel-destroy
+$ make project-destroy
 ```
 
 Information on pruning Docker system cache
 ```bash
 $ sudo docker system prune
-
-...
-Total reclaimed space: 168.4MB
 ```
 
 Information on pruning Docker volume cache
 ```bash
 $ sudo docker volume prune
-
-...
-Total reclaimed space: 0MB
 ```
 
-## Laravel service check
-
-There are two PHP files on [resources/laravel](resources/laravel) with same structure as application to replace or add a predifined example to test the service.
-
-It can be used an API platform service *(Postman, Firefox RESTClient, etc..)* or just browsing the following endpoints to check connection with Laravel.
-
-Check-out a basic service check
-```
-GET: http://localhost:8888/api/v1/health
-
-{
-    "status": true
-}
-```
-
-Check connection to database through this endpoint. If conenction params are not set already or does not exist, endpoint response will be as follow
-```
-GET: http://localhost:8888/api/v1/health/db
-
-{
-    "status": false,
-    "message": "Connect to database failed - Check connection params.",
-    "error": {
-        "errorInfo": [
-            "HY000",
-            2002,
-            "Host is unreachable"
-        ]
-    }
-}
-```
-
-When a proper connection is set, endpoint will response as follow
-```
-GET: http://localhost:8888/api/v1/health/db
-
-{
-    "status": true
-}
-```
-
-## Custom database service usage
-
-In case of using the repository [https://github.com/pabloripoll/docker-mariadb-10.11](https://github.com/pabloripoll/docker-mariadb-10.11) as database service, complete the application mysql database connection params in [laravel/.env](laravel/.env) file.
-
-Use local hostname IP `$ make hostname` to set `DB_HOST` variable
-```
-DB_CONNECTION=mysql
-DB_HOST=192.168.1.41
-DB_PORT=8880
-DB_DATABASE=mariadb
-DB_USERNAME=mariadb
-DB_PASSWORD=123456
-```
-
-Migration has to be performed inside container. Access container with the following recipe:
-```bash
-$ make laravel-ssh
-```
+## Database Service
 
 ### Dumping Database
 
@@ -425,45 +398,11 @@ $ make database-replace
 DATABASE has been replaced.
 ```
 
-#### Notes
+## Final Notes
 
 - Notice that both files in [resources/database/](resources/database/) have the name that has been set on the main `.env` file to automate processes.
 
 - Remember that on any change in the main `.env` file will be required to execute the following Makefile recipe
 ```bash
-$ make laravel-set
-
-LARAVEL docker-compose.yml .env file has been set.
-```
-
-## Connection between containers
-
-#### On Windows systems
-
-This project has not been tested on Windows OS neither I can use it to test it. So, I cannot bring much support on it.
-
-Anyway, using this repository you will needed to find out your PC IP by login as an `administrator user` to set connection between containers.
-
-```bash
-C:\WINDOWS\system32>ipconfig /all
-
-Windows IP Configuration
-
- Host Name . . . . . . . . . . . . : 191.128.1.41
- Primary Dns Suffix. . . . . . . . : paul.ad.cmu.edu
- Node Type . . . . . . . . . . . . : Peer-Peer
- IP Routing Enabled. . . . . . . . : No
- WINS Proxy Enabled. . . . . . . . : No
- DNS Suffix Search List. . . . . . : scs.ad.cs.cmu.edu
-```
-
-Take the first ip listed. Wordpress container will connect with database container using that IP.
-
-#### On Unix based systems
-
-Find out your IP on UNIX systems and take the first IP listed
-```bash
-$ hostname -I
-
-191.128.1.41 172.17.0.1 172.20.0.1 172.21.0.1
+$ make project-set
 ```
