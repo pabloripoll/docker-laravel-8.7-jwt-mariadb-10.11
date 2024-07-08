@@ -4,6 +4,10 @@
     </a>
 </div>
 
+<div style="width:100%;float:left;clear:both;margin-bottom:50px;">
+    <img style="width:100%;float:left;" src="resources/images/laravel-8-capture.png"/>
+</div>
+
 # Docker Laravel 8 + JWT with PHP FPM 8.0
 
 The objective of this repository is having a CAAS [Containers As A Service](https://www.ibm.com/topics/containers-as-a-service) to provide a local development stage application with Nginx and PHP-FPM as Backend Service and a SQL Database Service following the best practices on an easy scenario to understand and modify in an Hexagonal Architecture.
@@ -22,9 +26,9 @@ The objective of this repository is having a CAAS [Containers As A Service](http
 
 This repository has been updated including a database container service to test the backend application to simulate an database instance in development stage.
 
-- [Alpine Linux 3.20](https://www.alpinelinux.org/)
-
 - [MariaDB 10.11.6-r0](https://mariadb.com/kb/en/changes-improvements-in-mariadb-1011/)
+
+- [Alpine Linux 3.20](https://www.alpinelinux.org/)
 
 ## Project objetives with Docker
 
