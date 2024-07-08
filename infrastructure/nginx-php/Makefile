@@ -113,7 +113,7 @@ dev: ## set a development enviroment
 # -------------------------------------------------------------------------------------------------
 
 APPLICATION_UPDATE="composer update"
-APPLICATION_INSTALL='composer create-project laravel/laravel:^11.1.1 . && \
+APPLICATION_INSTALL='composer create-project laravel/laravel:^8 . && \
 composer require tymon/jwt-auth'
 
 .PHONY: app-install app-update
